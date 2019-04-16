@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Bot.Builder.Expressions.Parser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Bot.Builder.Expressions.Tests
 {
@@ -262,8 +264,17 @@ namespace Microsoft.Bot.Builder.Expressions.Tests
             Test("property(bag, concat('na','me'))","mybag"),
             Test("items[2]", "two", new HashSet<string> { "items[2]" }),
             Test("bag.list[bag.index - 2]", "blue", new HashSet<string> {"bag.list", "bag.index" }),
-            # endregion
+            #endregion
 
+            #region Json test
+            Test("sum(jarrInt)",6),
+            Test("sum(jarrFloat)",6.6),
+            Test("average(jarrInt)",2.0),
+            Test("average(jarrFloat)",2.2),
+            Test("count(jarrInt)",3),
+            Test("count(jarrFloat)",3),
+            Test("contains(jarrString, 'first')",true),
+            # endregion
         };
 
         [DataTestMethod]
@@ -287,6 +298,9 @@ namespace Microsoft.Bot.Builder.Expressions.Tests
                     index = 3,
                     name = "mybag"
                 },
+                jarrInt = new JArray {1, 2, 3 },
+                jarrFloat = new JArray { 1.1, 2.2, 3.3 },
+                jarrString = new JArray { "first", "second", "third" },
                 items = new string[] { "zero", "one", "two" },
                 nestedItems = new []
                 {
@@ -363,8 +377,16 @@ namespace Microsoft.Bot.Builder.Expressions.Tests
 
         private void AssertObjectEquals(object expected, object actual)
         {
+            if (expected is float expFloat && actual is float actuFloat)
+            {
+                Assert.IsTrue(Math.Abs(expFloat - actuFloat) < 0.0000001);
+            }
+            else if (expected is double expDouble && actual is double actuDouble)
+            {
+                Assert.IsTrue(Math.Abs(expDouble - actuDouble) < 0.0000001);
+            }
             // Compare two lists
-            if (expected is IList expectedList
+            else if(expected is IList expectedList
                 && actual is IList actualList)
             {
                 Assert.AreEqual(expectedList.Count, actualList.Count);
